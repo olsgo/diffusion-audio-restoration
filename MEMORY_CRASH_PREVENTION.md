@@ -234,3 +234,30 @@ The system automatically:
 4. Use external processing with smaller batch sizes
 
 This comprehensive solution transforms the A2SB diffusion model from a system-crashing liability into a well-behaved, resource-aware application that gracefully adapts to available system resources while preventing catastrophic memory pressure scenarios.
+
+## ⚡ OPTIMIZED VERSION AVAILABLE
+
+An **optimized version** with better balance between safety and usability is now available:
+
+- **📁 Script**: `inference/A2SB_upsample_api_mps_optimized.py`
+- **📖 Documentation**: `OPTIMIZED_MEMORY_SAFETY.md`
+
+### Key Improvements in Optimized Version:
+- **Better defaults**: 15 steps (vs 5), 180s timeout (vs 90s)
+- **More lenient thresholds**: 85% memory (vs 75%), 10GB process (vs 6GB)
+- **5 graduated scaling levels** instead of 3
+- **Graceful shutdown** instead of harsh termination
+- **Force mode** for power users
+- **Balanced configuration** for intermediate memory pressure
+
+### Quick Comparison:
+| Aspect | Original Implementation | Optimized Implementation |
+|--------|------------------------|---------------------------|
+| **Default Steps** | 5 (ultra-conservative) | 15 (balanced quality) |
+| **Memory Threshold** | 75% system emergency | 85% system emergency |
+| **Process Limit** | 6GB | 10GB (better for M1 Max) |
+| **Scaling Levels** | 3 (binary) | 5 (graduated) |
+| **User Control** | Limited | Force mode available |
+| **Quality** | Poor (5 steps) | Good (15+ steps) |
+
+**Recommended**: Use the optimized version for better quality while maintaining safety.
