@@ -1,0 +1,121 @@
+# BALANCED Configuration for Apple Silicon M1 Max
+# Moderate settings balancing safety and performance
+# For systems with moderate memory pressure
+
+seed_everything: 0
+trainer:
+  accelerator: mps
+  strategy: auto
+  devices: 1
+  num_nodes: 1
+  precision: 32-true # Keep full precision for quality
+  logger: false # Reduce overhead
+  callbacks: null
+  fast_dev_run: false
+  max_epochs: null
+  min_epochs: null
+  max_steps: -1
+  min_steps: null
+  max_time: null
+  limit_train_batches: null
+  limit_val_batches: null
+  limit_test_batches: null
+  limit_predict_batches: 2 # Small batch processing
+  overfit_batches: 0.0
+  val_check_interval: 1000
+  check_val_every_n_epoch: 1
+  num_sanity_val_steps: 1 # Minimal sanity checks
+  log_every_n_steps: null
+  enable_checkpointing: false # No checkpointing
+  enable_progress_bar: false # Reduce output overhead
+  enable_model_summary: false # Reduce overhead
+  accumulate_grad_batches: 1
+  gradient_clip_val: 0.5
+  gradient_clip_algorithm: norm
+  deterministic: null
+  benchmark: false
+  inference_mode: true
+  use_distributed_sampler: false
+  profiler: null
+  detect_anomaly: false
+  barebones: true # Minimal trainer overhead
+  plugins: []
+  sync_batchnorm: false
+  reload_dataloaders_every_n_epochs: 0
+
+model:
+  vf_model:
+    class_path: networks.AttnUNetF
+    init_args:
+      n_updown_levels: 5 # Keep full model depth
+      in_channels: 3
+      hidden_channels: [96, 192, 384, 576, 768, 1536] # Slightly reduced channels
+      out_channels: 3
+      emb_channels: 96 # Slightly reduced embedding
+      rotary_dims: 12 # Reduced from 16
+      band_embedding_dim: 12 # Reduced from 16
+      n_attn_heads: 6 # Reduced from 8
+      attention_levels:
+        - 3
+        - 4
+      use_attn_input_norm: true
+      num_res_blocks: 2 # Keep full residual blocks
+  inv_transforms:
+    - class_path: audio_transforms.transforms.PowerScaleSpectrogram
+      init_args:
+        power: 4
+        channels:
+          - 0
+        eps: 1.0e-09
+    - class_path: audio_transforms.transforms.SpectrogramAddDCTerm
+    - class_path: audio_transforms.transforms.SVDFixMagInstPhase
+    - class_path: audio_transforms.transforms.MagInstPhaseToComplex
+    - class_path: audio_transforms.transforms.InverseComplexSpectrogram
+      init_args:
+        n_fft: 1536 # Between 2048 and 1024
+        win_length: 1536 # Between 2048 and 1024
+        hop_length: 384 # Between 512 and 256
+        eps: 1.0e-09
+  sampling_rate: 44100
+  n_timestep_channels: 96 # Slightly reduced
+  use_ot_ode: false
+  beta_max: 1.0
+  pretrained_checkpoints:
+    - /Users/gjb/Projects/diffusion-audio-restoration/pretrained/1/A2SB_twosplit_0.0_0.5_release.ckpt
+    - /Users/gjb/Projects/diffusion-audio-restoration/pretrained/1/A2SB_twosplit_0.5_1.0_release.ckpt
+  t_cutoffs: [0.5]
+
+data:
+  mix_dataset_config: {}
+  segment_length: 98304 # Between 130560 and 65280 (75% of original)
+  sampling_rate: 44100
+  num_workers: 1 # Minimal workers
+  batch_size: 1 # Safe batch size
+  persistent_workers: false
+  pin_memory: false
+  prefetch_factor: 1
+
+  transforms_aug: []
+  transforms_aug_val: []
+  eval_transforms_aug: []
+
+  transforms_gt:
+    - class_path: audio_transforms.transforms.ComplexSpectrogram
+      init_args:
+        n_fft: 1536 # Consistent with inverse transform
+        win_length: 1536
+        hop_length: 384
+        eps: 1.0e-09
+    - class_path: audio_transforms.transforms.ComplexToMagInstPhase
+    - class_path: audio_transforms.transforms.SVDFixMagInstPhase
+    - class_path: audio_transforms.transforms.SpectrogramSubtractDCTerm
+    - class_path: audio_transforms.transforms.PowerScaleSpectrogram
+      init_args:
+        power: 0.25
+        channels:
+          - 0
+        eps: 1.0e-09
+
+  train_max_samples: null
+  val_max_samples: 128 # Between 256 and 64
+  predict_filelist: []
