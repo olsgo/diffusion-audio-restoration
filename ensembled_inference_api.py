@@ -19,7 +19,7 @@ class InpaintingAudioSBLightningCLI(LightningCLI):
                              "checkpoint_callback.monitor": "global_step",
                              "checkpoint_callback.mode": "max",
                              "checkpoint_callback.every_n_train_steps": 1000,
-                             "checkpoint_callback.dirpath": "/debug",
+                             "checkpoint_callback.dirpath": "./debug",
                              "checkpoint_callback.save_top_k": -1,
                              "checkpoint_callback.auto_insert_metric_name": False})
         parser.link_arguments("checkpoint_callback.dirpath", "trainer.default_root_dir")

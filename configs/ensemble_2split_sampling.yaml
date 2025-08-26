@@ -2,7 +2,7 @@
 seed_everything: 0
 trainer:
   accelerator: gpu
-  strategy: ddp
+  strategy: auto
   devices: 1
   num_nodes: 1
   precision: 32-true
@@ -81,23 +81,17 @@ model:
   use_ot_ode: false
   beta_max: 1.0
   pretrained_checkpoints:
-    - PATH/TO/FIRST/SPLIT.ckpt
-    - PATH/TO/SECOND/SPLIT.ckpt
-  t_cutoffs: [ 0.5 ]
+    - /Users/gjb/Projects/diffusion-audio-restoration/pretrained/1/A2SB_twosplit_0.0_0.5_release.ckpt
+    - /Users/gjb/Projects/diffusion-audio-restoration/pretrained/1/A2SB_twosplit_0.5_1.0_release.ckpt
+  t_cutoffs: [0.5]
 data:
-  mix_dataset_config:
-    EVAL_DATASET_NAME:
-      root_folder: PATH/TO/MANIFEST/FOLDER
-      filename: 'EVAL_DATASET_NAME_manifest.csv'
-    EVAL_DATASET_NAME_TWO:
-      root_folder: PATH/TO/MANIFEST/FOLDER
-      filename: 'EVAL_DATASET_NAME_TWO_manifest.csv'
+  mix_dataset_config: {}
 
   segment_length: 130560
   sampling_rate: 44100
   num_workers: 23
   batch_size: 4
-  
+
   transforms_aug: []
   transforms_aug_val: []
   eval_transforms_aug: []

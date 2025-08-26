@@ -64,14 +64,24 @@ def compute_rolloff_freq(audio_file, roll_percent=0.99):
 def upsample_one_sample(audio_filename, output_audio_filename, predict_n_steps=50):
 
     assert output_audio_filename != audio_filename, "output filename cannot be input filename"
+    
+    # Set default export folder if output path is not absolute
+    default_export_folder = "/Users/gjb/_sound/_novaera/_samples/difussion audio restoration"
+    if not os.path.isabs(output_audio_filename):
+        # Create the default export folder if it doesn't exist
+        os.makedirs(default_export_folder, exist_ok=True)
+        output_audio_filename = os.path.join(default_export_folder, output_audio_filename)
+        print(f"Using default export folder: {output_audio_filename}")
 
     inference_config = load_yaml('../configs/inference_files_upsampling.yaml')
+    # Convert to absolute path to handle directory changes
+    abs_audio_filename = os.path.abspath(audio_filename)
     inference_config['data']['predict_filelist'] = [{
-        'filepath': audio_filename,
+        'filepath': abs_audio_filename,
         'output_subdir': '.'
     }]
 
-    cutoff_freq = compute_rolloff_freq(audio_filename, roll_percent=0.99)
+    cutoff_freq = compute_rolloff_freq(abs_audio_filename, roll_percent=0.99)
     inference_config['data']['transforms_aug'][0]['init_args']['upsample_mask_kwargs'] = {
         'min_cutoff_freq': cutoff_freq,
         'max_cutoff_freq': cutoff_freq
@@ -79,11 +89,11 @@ def upsample_one_sample(audio_filename, output_audio_filename, predict_n_steps=5
     temporary_yaml_file = save_yaml(inference_config)
 
     cmd = "cd ../; \
-        python ensembled_inference_api.py predict \
+        conda run -n a2sb python ensembled_inference_api.py predict \
             -c configs/ensemble_2split_sampling.yaml \
             -c {} \
             --model.predict_n_steps={} \
-            --model.output_audio_filename={}; \
+            --model.output_audio_filename='{}'; \
         cd inference/".format(temporary_yaml_file.replace('../', ''), predict_n_steps, output_audio_filename)
     shell_run_cmd(cmd)
     

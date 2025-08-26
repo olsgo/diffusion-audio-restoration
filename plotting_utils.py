@@ -9,8 +9,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pylab as plt
 import numpy as np
-from moviepy.video.io.bindings import mplfig_to_npimage
 import librosa
+import io
 
 
 def plot_spec_to_numpy(spectrogram, title='', sr=48000, hop_length=512, info=None, vmin=None, vmax=None, cmap='brg'):
@@ -23,9 +23,19 @@ def plot_spec_to_numpy(spectrogram, title='', sr=48000, hop_length=512, info=Non
     fig.tight_layout()
 
     fig.canvas.draw()
-    fig.show()
-    numpy_fig = mplfig_to_npimage(fig)
-
+    
+    # Alternative to moviepy: convert matplotlib figure to numpy array
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
+    buf.seek(0)
+    
+    from PIL import Image
+    img = Image.open(buf)
+    numpy_fig = np.array(img)
+    
+    plt.close(fig)
+    buf.close()
+    
     return numpy_fig
 
 
@@ -42,7 +52,17 @@ def plot_phase_to_numpy(phase, title='', sr=48000, hop_length=512, info=None, vm
     fig.tight_layout()
 
     fig.canvas.draw()
-    fig.show()
-    numpy_fig = mplfig_to_npimage(fig)
-    matplotlib.pyplot.close(fig)
+    
+    # Alternative to moviepy: convert matplotlib figure to numpy array
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
+    buf.seek(0)
+    
+    from PIL import Image
+    img = Image.open(buf)
+    numpy_fig = np.array(img)
+    
+    plt.close(fig)
+    buf.close()
+    
     return numpy_fig
